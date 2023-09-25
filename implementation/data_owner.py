@@ -105,7 +105,7 @@ def retrieve_public_parameters(process_instance_id):
     return public_parameters
 
 
-def main(groupObj, maabe, api, process_instance_id):
+def get_pp_pk():
     public_parameters = retrieve_public_parameters(process_instance_id)
     public_parameters = bytesToObject(public_parameters, groupObj)
     H = lambda x: self.group.hash(x, G2)
@@ -139,14 +139,18 @@ def main(groupObj, maabe, api, process_instance_id):
 
     # public keys authorities
     pk = {'UT': pk1, 'OU': pk2, 'OT': pk3, 'TU': pk4}
+    return pk, public_parameters
 
+
+def one_file_encryption(public_parameters, pk):
     f = open('files/data.json')
     data = json.load(f)
-    access_policy = ['(157591584@UT and 157591584@OU and 157591584@OT and 157591584@TU) and (MANUFACTURER@UT or '
+
+    access_policy = ['(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or '
                      'SUPPLIER@OU)',
-                     '(157591584@UT and 157591584@OU and 157591584@OT and 157591584@TU) and (MANUFACTURER@UT or ('
+                     '(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or ('
                      'SUPPLIER@OU and ELECTRONICS@OT)',
-                     '(157591584@UT and 157591584@OU and 157591584@OT and 157591584@TU) and (MANUFACTURER@UT or ('
+                     '(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or ('
                      'SUPPLIER@OU and MECHANICS@TU)']
 
     entries = [['ID', 'SortAs', 'GlossTerm'], ['Acronym', 'Abbrev'], ['Specs', 'Dates']]
@@ -218,6 +222,28 @@ def main(groupObj, maabe, api, process_instance_id):
         data_owner_private_key, app_id_messages, json_total['metadata']['message_id'], hash_file)))
 
 
+def more_files_encryption(public_parameters, pk):
+    # json_string = json.dumps(data)
+    # print(json_string)
+    # print()
+    # test = cryptocode.encrypt(json_string, str(keys[i]))
+    # print(test)
+    # print()
+    # test_decifrato = cryptocode.decrypt(test, str(keys[i]))
+    # print(test_decifrato)
+    # exit()
+    print('da capire')
+
+
+def main():
+    pp_pk = get_pp_pk()
+    pk = pp_pk[0]
+    public_parameters = pp_pk[1]
+
+    one_file_encryption(public_parameters, pk)
+    more_files_encryption(public_parameters, pk)
+
+
 if __name__ == '__main__':
     groupObj = PairingGroup('SS512')
     maabe = MaabeRW15(groupObj)
@@ -225,4 +251,4 @@ if __name__ == '__main__':
 
     process_instance_id = int(app_id_box)
     # generate_pp_pk(process_instance_id)
-    main(groupObj, maabe, api, process_instance_id)
+    main()
