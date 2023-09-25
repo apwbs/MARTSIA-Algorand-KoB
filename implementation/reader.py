@@ -100,7 +100,48 @@ def actual_decryption(remaining, public_parameters, user_sk, ciphertext_dict):
     print(dict(decoded_final))
 
 
-def main(process_instance_id, message_id, slice_id):
+def one_file_decryption(public_parameters, user_sk):
+    # decrypt
+    response = retriever.retrieveMessage(app_id_messages, message_id)
+    ciphertext_link = response[0]
+    getfile = api.cat(ciphertext_link)
+    ciphertext_dict = json.loads(getfile)
+    sender = response[1]
+    if ciphertext_dict['metadata']['process_instance_id'] == int(process_instance_id) \
+            and ciphertext_dict['metadata']['message_id'] == message_id \
+            and ciphertext_dict['metadata']['sender'] == sender:
+        slice_check = ciphertext_dict['header']
+        if len(slice_check) == 1:
+            actual_decryption(ciphertext_dict['header'][0], public_parameters, user_sk, ciphertext_dict)
+        elif len(slice_check) > 1:
+            for remaining in slice_check:
+                if remaining['Slice_id'] == slice_id:
+                    actual_decryption(remaining, public_parameters, user_sk, ciphertext_dict)
+
+
+def more_files_decryption(public_parameters, user_sk):
+    response = retriever.retrieveMessage(app_id_messages, message_id)
+    ciphertext_link = response[0]
+    getfile = api.cat(ciphertext_link)
+    ciphertext_dict = json.loads(getfile)
+    sender = response[1]
+    if ciphertext_dict['metadata']['process_instance_id'] == int(process_instance_id) \
+            and ciphertext_dict['metadata']['message_id'] == message_id \
+            and ciphertext_dict['metadata']['sender'] == sender:
+        slice_check = ciphertext_dict['header']
+        for entry in slice_check:
+            if entry['Slice_id'] == slice_id:
+                test = entry['CipheredKey'].encode('utf-8')
+
+                ct = bytesToObject(test, groupObj)
+                v2 = maabe.decrypt(public_parameters, user_sk, ct)
+                v2 = groupObj.serialize(v2)
+
+                decoded = [cryptocode.decrypt(ciphertext_dict['body'][entry['File']], str(v2))]
+                print(decoded)
+
+
+def main(process_instance_id):
     public_parameters = retrieve_public_parameters(process_instance_id)
     public_parameters = bytesToObject(public_parameters, groupObj)
     H = lambda x: self.group.hash(x, G2)
@@ -139,22 +180,8 @@ def main(process_instance_id, message_id, slice_id):
 
     user_sk = {'GID': 'bob', 'keys': merge_dicts(user_sk1, user_sk2, user_sk3, user_sk4)}
 
-    # decrypt
-    response = retriever.retrieveMessage(app_id_messages, message_id)
-    ciphertext_link = response[0]
-    getfile = api.cat(ciphertext_link)
-    ciphertext_dict = json.loads(getfile)
-    sender = response[1]
-    if ciphertext_dict['metadata']['process_instance_id'] == int(process_instance_id) \
-            and ciphertext_dict['metadata']['message_id'] == message_id \
-            and ciphertext_dict['metadata']['sender'] == sender:
-        slice_check = ciphertext_dict['header']
-        if len(slice_check) == 1:
-            actual_decryption(ciphertext_dict['header'][0], public_parameters, user_sk, ciphertext_dict)
-        elif len(slice_check) > 1:
-            for remaining in slice_check:
-                if remaining['Slice_id'] == slice_id:
-                    actual_decryption(remaining, public_parameters, user_sk, ciphertext_dict)
+    # one_file_decryption(public_parameters, user_sk)
+    more_files_decryption(public_parameters, user_sk)
 
 
 if __name__ == '__main__':
@@ -164,6 +191,10 @@ if __name__ == '__main__':
 
     process_instance_id = app_id_box
     # generate_public_parameters()
-    message_id = 4425557368350997437
-    slice_id = 1139373568972963751
-    main(process_instance_id, message_id, slice_id)
+    message_id = 7264341049872093454
+    slice_id = 8707200486744384694
+    main(process_instance_id)
+    # slice id 0: 17279938162711073123
+    # slice id 1: 5913138998753462885
+    # slice id 2: 8707200486744384694
+    # message id: 7264341049872093454

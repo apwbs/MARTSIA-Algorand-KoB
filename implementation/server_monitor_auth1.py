@@ -62,12 +62,12 @@ def send_ipfs_link(reader_address, process_instance_id, hash_file):
     signed_txn = unsigned_txn.sign(private_key)
 
     # send transaction
-    end_off_chain = time.time()
+    # end_off_chain = time.time()
     txid = algod_client.send_transaction(signed_txn)
-    blockchain_execution = time.time()
+    # blockchain_execution = time.time()
     print("Send transaction with txID: {}".format(txid))
-    print('The time for transaction generation is :', (end_off_chain - start) * 10 ** 3, 'ms')
-    print('The time for blockchain execution is :', (blockchain_execution - end_off_chain) * 10 ** 3, 'ms')
+    # print('The time for transaction generation is :', (end_off_chain - start) * 10 ** 3, 'ms')
+    # print('The time for blockchain execution is :', (blockchain_execution - end_off_chain) * 10 ** 3, 'ms')
 
 
 def generate_key(x):
@@ -115,9 +115,9 @@ def cipher_generated_key(reader_address, process_instance_id, generated_ma_key):
 
 
 def transactions_monitoring():
-    global start
-    start = time.time()
-    min_round = 31282499
+    # global start
+    # start = time.time()
+    min_round = 33258687
     transactions = []
     note = 'generate your part of my key'
     while True:

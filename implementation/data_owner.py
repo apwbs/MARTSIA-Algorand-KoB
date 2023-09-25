@@ -9,6 +9,7 @@ from datetime import datetime
 import random
 import os
 import base64
+import PyPDF2
 import subprocess
 from algosdk.encoding import decode_address, encode_address
 import ast
@@ -222,17 +223,82 @@ def one_file_encryption(public_parameters, pk):
         data_owner_private_key, app_id_messages, json_total['metadata']['message_id'], hash_file)))
 
 
+def pdf_to_string(pdf_filename):
+    with open(pdf_filename, 'rb') as pdf_file:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        text = ""
+        for page_num in range(len(pdf_reader.pages)):
+            page = pdf_reader.pages[page_num]
+            page_text = page.extract_text()
+            text += page_text
+        return text
+
+
 def more_files_encryption(public_parameters, pk):
-    # json_string = json.dumps(data)
-    # print(json_string)
-    # print()
-    # test = cryptocode.encrypt(json_string, str(keys[i]))
-    # print(test)
-    # print()
-    # test_decifrato = cryptocode.decrypt(test, str(keys[i]))
-    # print(test_decifrato)
-    # exit()
-    print('da capire')
+    input_folder = "files/files_inputs"
+    pdf_files = [f for f in os.listdir(input_folder) if f.endswith(".pdf")]
+    pdf_strings = {}
+    for pdf_filename in pdf_files:
+        pdf_path = os.path.join(input_folder, pdf_filename)
+        pdf_text = pdf_to_string(pdf_path)
+        pdf_strings[pdf_filename] = pdf_text
+    pdf_json = json.dumps(pdf_strings, indent=4)
+
+    access_policy = ['(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or '
+                     'SUPPLIER@OU)',
+                     '(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or ('
+                     'SUPPLIER@OU and ELECTRONICS@OT)',
+                     '(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or ('
+                     'SUPPLIER@OU and MECHANICS@TU)']
+
+    keys = []
+    header = []
+    for i in range(len(pdf_files)):
+        key_group = groupObj.random(GT)
+        key_encrypt = groupObj.serialize(key_group)
+        keys.append(key_encrypt)
+        key_encrypt_deser = groupObj.deserialize(key_encrypt)
+
+        ciphered_key = maabe.encrypt(public_parameters, pk, key_encrypt_deser, access_policy[i])
+        ciphered_key_bytes = objectToBytes(ciphered_key, groupObj)
+        ciphered_key_bytes_string = ciphered_key_bytes.decode('utf-8')
+
+        now = datetime.now()
+        now = int(now.strftime("%Y%m%d%H%M%S%f"))
+        random.seed(now)
+        slice_id = random.randint(1, 2 ** 64)
+        dict_pol = {'Slice_id': slice_id, 'File': pdf_files[i], 'CipheredKey': ciphered_key_bytes_string}
+        print(f'slice id {i}: {slice_id}')
+        header.append(dict_pol)
+
+    dict_files = json.loads(pdf_json)
+    json_file_ciphered = {}
+    for i, entry in enumerate(pdf_files):
+        cipher = cryptocode.encrypt(dict_files[entry], str(keys[i]))
+        json_file_ciphered[entry] = cipher
+
+    now = datetime.now()
+    now = int(now.strftime("%Y%m%d%H%M%S%f"))
+    random.seed(now)
+    message_id = random.randint(1, 2 ** 64)
+    metadata = {'sender': data_owner_address, 'process_instance_id': int(process_instance_id),
+                'message_id': message_id}
+    print(f'message id: {message_id}')
+
+    json_total = {'metadata': metadata, 'header': header, 'body': json_file_ciphered}
+
+    with open('files/more_files.json', 'w') as u1:
+        u1.write(json.dumps(json_total))
+
+    hash_file = api.add_json(json_total)
+    print(f'ipfs hash: {hash_file}')
+
+    x.execute("INSERT OR IGNORE INTO messages VALUES (?,?,?,?)",
+              (process_instance_id, str(message_id), hash_file, str(json_total)))
+    conn.commit()
+
+    print(os.system('python3.10 blockchain/MessageContract/MessageContractMain.py %s %s %s %s' % (
+        data_owner_private_key, app_id_messages, json_total['metadata']['message_id'], hash_file)))
 
 
 def main():
@@ -240,7 +306,7 @@ def main():
     pk = pp_pk[0]
     public_parameters = pp_pk[1]
 
-    one_file_encryption(public_parameters, pk)
+    # one_file_encryption(public_parameters, pk)
     more_files_encryption(public_parameters, pk)
 
 

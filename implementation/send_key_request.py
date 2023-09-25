@@ -63,7 +63,7 @@ def wait_for_confirmation(client, transaction_id, timeout):
 
 
 def send_key_request():
-    start = time.time()
+    # start = time.time()
     algod_client = algod.AlgodClient(algod_token, algod_address, headers)
 
     # private_key = get_private_key_from_mnemonic(creator_mnemonic)
@@ -76,7 +76,7 @@ def send_key_request():
     # params.fee = 1000
     note = 'generate your part of my key,bob,' + str(app_id_box)
     note_encoded = note.encode()
-    receiver = authority1_address
+    receiver = authority4_address
 
     unsigned_txn = PaymentTxn(my_address, params, receiver, 0, None, note_encoded)
 
@@ -86,7 +86,7 @@ def send_key_request():
 
     # send transaction
     txid = algod_client.send_transaction(signed_txn)
-    blockchain_execution_sending = time.time()
+    # blockchain_execution_sending = time.time()
     print("Send transaction with txID: {}".format(txid))
 
     # # wait for confirmation
@@ -95,14 +95,14 @@ def send_key_request():
     except Exception as err:
         print(err)
         return
-    blockchain_execution_confirmation = time.time()
+    # blockchain_execution_confirmation = time.time()
 
-    print('The time for transaction generation is :', (generate_transaction - start) * 10 ** 3, 'ms')
-    print('The time for blockchain sending is :', (blockchain_execution_sending - generate_transaction) * 10 ** 3, 'ms')
-    print('The time for blockchain confirmation is :', (blockchain_execution_confirmation - blockchain_execution_sending
-                                                        ) * 10 ** 3, 'ms')
-    print('The time for blockchain execution is :', (blockchain_execution_sending - start) * 10 ** 3, 'ms')
-    print('The time for blockchain execution total is :', (blockchain_execution_confirmation - start) * 10 ** 3, 'ms')
+    # print('The time for transaction generation is :', (generate_transaction - start) * 10 ** 3, 'ms')
+    # print('The time for blockchain sending is :', (blockchain_execution_sending - generate_transaction) * 10 ** 3, 'ms')
+    # print('The time for blockchain confirmation is :', (blockchain_execution_confirmation - blockchain_execution_sending
+    #                                                     ) * 10 ** 3, 'ms')
+    # print('The time for blockchain execution is :', (blockchain_execution_sending - start) * 10 ** 3, 'ms')
+    # print('The time for blockchain execution total is :', (blockchain_execution_confirmation - start) * 10 ** 3, 'ms')
 
 
 if __name__ == "__main__":
