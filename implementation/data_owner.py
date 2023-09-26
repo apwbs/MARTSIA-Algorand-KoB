@@ -242,7 +242,7 @@ def more_files_encryption(public_parameters, pk):
             encoded_data = file_to_base64(file_path)
             if encoded_data is not None:
                 encoded_files[filename] = encoded_data
-    # print(encoded_files['File1.pdf'])
+
     access_policy = ['(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or '
                      'SUPPLIER@OU)',
                      '(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or ('
