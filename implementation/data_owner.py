@@ -210,6 +210,9 @@ def one_file_encryption(public_parameters, pk):
 
     json_total = {'metadata': metadata, 'header': header, 'body': json_file_ciphered}
 
+    with open('files/one_file.json', 'w') as u1:
+        u1.write(json.dumps(json_total))
+
     # encoded = cryptocode.encrypt("Ciao Marzia!", str(key_encrypt1))
 
     hash_file = api.add_json(json_total)
@@ -272,8 +275,12 @@ def more_files_encryption(public_parameters, pk):
 
     json_file_ciphered = {}
     for i, entry in enumerate(encoded_files):
+        ciphered_fields = []
+        cipher_field = cryptocode.encrypt(entry, str(keys[i]))
+        ciphered_fields.append(cipher_field)
         cipher = cryptocode.encrypt(encoded_files[entry], str(keys[i]))
-        json_file_ciphered[entry] = cipher
+        json_file_ciphered[cipher_field] = cipher
+        header[i]['File'] = ciphered_fields
 
     now = datetime.now()
     now = int(now.strftime("%Y%m%d%H%M%S%f"))

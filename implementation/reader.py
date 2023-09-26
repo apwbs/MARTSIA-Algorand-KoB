@@ -149,8 +149,9 @@ def more_files_decryption(public_parameters, user_sk):
                 v2 = maabe.decrypt(public_parameters, user_sk, ct)
                 v2 = groupObj.serialize(v2)
 
-                decoded = cryptocode.decrypt(ciphertext_dict['body'][entry['File']], str(v2))
-                output_files[entry['File']] = decoded
+                field_decoded = cryptocode.decrypt(entry['File'][0], str(v2))
+                decoded = cryptocode.decrypt(ciphertext_dict['body'][entry['File'][0]], str(v2))
+                output_files[field_decoded] = decoded
                 for filename, encoded_data in output_files.items():
                     base64_to_file(encoded_data, output_folder+filename)
 
@@ -205,6 +206,6 @@ if __name__ == '__main__':
 
     process_instance_id = app_id_box
     # generate_public_parameters()
-    message_id = 9711348911527723526
-    slice_id = 8315878692927754566
+    message_id = 10369581286002742397
+    slice_id = 4748750981756614137
     main(process_instance_id)
