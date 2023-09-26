@@ -223,27 +223,26 @@ def one_file_encryption(public_parameters, pk):
         data_owner_private_key, app_id_messages, json_total['metadata']['message_id'], hash_file)))
 
 
-def pdf_to_string(pdf_filename):
-    with open(pdf_filename, 'rb') as pdf_file:
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-        text = ""
-        for page_num in range(len(pdf_reader.pages)):
-            page = pdf_reader.pages[page_num]
-            page_text = page.extract_text()
-            text += page_text
-        return text
+def file_to_base64(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            encoded = base64.b64encode(file.read()).decode('utf-8')
+        return encoded
+    except Exception as e:
+        print(f"Error encoding file to Base64: {e}")
+        return None
 
 
 def more_files_encryption(public_parameters, pk):
-    input_folder = "files/files_inputs"
-    pdf_files = [f for f in os.listdir(input_folder) if f.endswith(".pdf")]
-    pdf_strings = {}
-    for pdf_filename in pdf_files:
-        pdf_path = os.path.join(input_folder, pdf_filename)
-        pdf_text = pdf_to_string(pdf_path)
-        pdf_strings[pdf_filename] = pdf_text
-    pdf_json = json.dumps(pdf_strings, indent=4)
-
+    folder_path = "files/files_inputs/ok_files/"
+    encoded_files = {}
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path):
+            encoded_data = file_to_base64(file_path)
+            if encoded_data is not None:
+                encoded_files[filename] = encoded_data
+    # print(encoded_files['File1.pdf'])
     access_policy = ['(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or '
                      'SUPPLIER@OU)',
                      '(382532256@UT and 382532256@OU and 382532256@OT and 382532256@TU) and (MANUFACTURER@UT or ('
@@ -253,7 +252,7 @@ def more_files_encryption(public_parameters, pk):
 
     keys = []
     header = []
-    for i in range(len(pdf_files)):
+    for i in range(len(encoded_files)):
         key_group = groupObj.random(GT)
         key_encrypt = groupObj.serialize(key_group)
         keys.append(key_encrypt)
@@ -267,14 +266,13 @@ def more_files_encryption(public_parameters, pk):
         now = int(now.strftime("%Y%m%d%H%M%S%f"))
         random.seed(now)
         slice_id = random.randint(1, 2 ** 64)
-        dict_pol = {'Slice_id': slice_id, 'File': pdf_files[i], 'CipheredKey': ciphered_key_bytes_string}
+        dict_pol = {'Slice_id': slice_id, 'File': list(encoded_files.keys())[i], 'CipheredKey': ciphered_key_bytes_string}
         print(f'slice id {i}: {slice_id}')
         header.append(dict_pol)
 
-    dict_files = json.loads(pdf_json)
     json_file_ciphered = {}
-    for i, entry in enumerate(pdf_files):
-        cipher = cryptocode.encrypt(dict_files[entry], str(keys[i]))
+    for i, entry in enumerate(encoded_files):
+        cipher = cryptocode.encrypt(encoded_files[entry], str(keys[i]))
         json_file_ciphered[entry] = cipher
 
     now = datetime.now()

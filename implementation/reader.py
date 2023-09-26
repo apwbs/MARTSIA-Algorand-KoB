@@ -6,6 +6,7 @@ import ipfshttpclient
 import json
 from maabe_class import *
 import sys
+import os
 import base64
 import subprocess
 from algosdk.encoding import decode_address, encode_address
@@ -119,7 +120,18 @@ def one_file_decryption(public_parameters, user_sk):
                     actual_decryption(remaining, public_parameters, user_sk, ciphertext_dict)
 
 
+def base64_to_file(encoded_data, output_file_path):
+    try:
+        decoded_data = base64.b64decode(encoded_data.encode('utf-8'))
+        with open(output_file_path, 'wb') as file:
+            file.write(decoded_data)
+    except Exception as e:
+        print(f"Error decoding Base64 to file: {e}")
+
+
 def more_files_decryption(public_parameters, user_sk):
+    output_folder = "files/prova"
+    output_files = {}
     response = retriever.retrieveMessage(app_id_messages, message_id)
     ciphertext_link = response[0]
     getfile = api.cat(ciphertext_link)
@@ -137,8 +149,10 @@ def more_files_decryption(public_parameters, user_sk):
                 v2 = maabe.decrypt(public_parameters, user_sk, ct)
                 v2 = groupObj.serialize(v2)
 
-                decoded = [cryptocode.decrypt(ciphertext_dict['body'][entry['File']], str(v2))]
-                print(decoded)
+                decoded = cryptocode.decrypt(ciphertext_dict['body'][entry['File']], str(v2))
+                output_files[entry['File']] = decoded
+                for filename, encoded_data in output_files.items():
+                    base64_to_file(encoded_data, output_folder+filename)
 
 
 def main(process_instance_id):
@@ -191,10 +205,6 @@ if __name__ == '__main__':
 
     process_instance_id = app_id_box
     # generate_public_parameters()
-    message_id = 7264341049872093454
-    slice_id = 8707200486744384694
+    message_id = 9711348911527723526
+    slice_id = 8315878692927754566
     main(process_instance_id)
-    # slice id 0: 17279938162711073123
-    # slice id 1: 5913138998753462885
-    # slice id 2: 8707200486744384694
-    # message id: 7264341049872093454
